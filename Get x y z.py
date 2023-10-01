@@ -9,13 +9,28 @@ Map_code = False #默认状态
 def is_game_window_focused():
     active_window = gw.getActiveWindow()
     if active_window is not None:
-        print("Active Window Title:", active_window.title)  # 调试信息：打印当前活动窗口标题
+       
         if active_window.title == game_window_title_en or active_window.title == game_window_title_zh:
             return True
     return False
 
+last_mouse_state = False
+import threading
+import ouput_show
+thread = threading.Thread(target=ouput_show.run_mainloop)
+thread.start()
+
+thread2 = threading.Thread(target=ouput_show.keyboard_)
+thread2.start()
 while True:
-   # if is_game_window_focused():
+    if is_game_window_focused():
+        print('已经进入游戏')
         x, y = pyautogui.position()
-        print(f"鼠标坐标：({x}, {y})", end='\r')
-        time.sleep(1)
+        mouse_state = pyautogui.mouseDown(button='left')
+        
+    #    if mouse_state :#and not last_mouse_state:
+        print(f"坐标：({x}, {y})")
+        
+        last_mouse_state = mouse_state
+        
+    time.sleep(1)  # 减小休眠时间以提高响应速度

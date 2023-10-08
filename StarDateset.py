@@ -98,6 +98,9 @@ TASKS = {
     "Secret_skills": 100,
     "Destroyer": 200,
     "Different_Weaknesses_Break": 100,
+    "Simulate_universe": 200,
+    "Relics": 100,
+    "Weaknesses_enter_battle": 100,
 }
 
 PRIORITY_TASK = {
@@ -121,6 +124,9 @@ PRIORITY_TASK = {
     "Secret_skills": 3,
     "Destroyer": 1,
     "Different_Weaknesses_Break": 1,
+    "Simulate_universe": 1,
+    "Relics": 5,
+    "Weaknesses_enter_battle": 1,
 }
 
 FIRST_TASK = [275, 410, 567, 883]
@@ -134,3 +140,4 @@ GET_ACTIVITY = [329, 803, 515, 856]
 
 FIGHT = [105, 55, 199, 78]
 BREAKTHROUGH_OVER = [837, 250, 1081, 310]
+RESTORES_ENERGY = [897, 256, 1027, 289]

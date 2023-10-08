@@ -88,19 +88,18 @@ def clear_region_in_image(image, x1, y1, x2, y2):
     return result
 
 
+x1, y1, x2, y2 = dateset.SIXTH_TASK
+x1, y1, x2, y2 = [16, 11, 144, 41]
 
-x1, y1, x2, y2 = dateset.FIGHT
-#x1, y1, x2, y2 = [16, 11, 144, 41]
-
-task_images = r"C:\Users\Administrator\Desktop\Sprict\images\task\Task_ui\3BF5DBBAE3157C6C8BA8F9DA9896F52B.png"
-#task_images = r"C:\Users\Administrator\Desktop\Sprict\images\task\B3C67BA2877AEB36A2E88E9E77BB4636.png"
+task_images = r"C:\Users\Administrator\Desktop\Sprict\images\task\Weaknesses_enter_battle.png"
+# task_images = r"C:\Users\Administrator\Desktop\Sprict\images\task\Different_Weaknesses_Break__.png"
 image = cv2.imread(task_images)
 from tools_star import Tools
 
-result_image = clear_region_in_image(image, x1, y1, x2, y2)
-#result_image = clear_region_in_image(image, x1, y1, x2, y2)
+result_image = Tools.clear_region_in_image(image, x1, y1, x2, y2)
+# result_image = clear_region_in_image(image, x1, y1, x2, y2)
 # output_file = rf"C:\Users\Administrator\Desktop\Sprict\images\box\{s}_{p}_.png"
-output_file =  r"C:\Users\Administrator\Desktop\Sprict\images\task\Task_ui\Gold.png"
+output_file = r"C:\Users\Administrator\Desktop\Sprict\images\task\Weaknesses_enter_battle.png"
 cv2.imwrite(output_file, result_image)
 print("Finsle")
 # from tools_star import Tools

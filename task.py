@@ -10,7 +10,16 @@ from tools_star import Tools as Tools
 import threading
 import ouput_show
 import task_tools
+import requests
+import psutil
+import sys
+import traceback
 
+pid = os.getpid()
+process = psutil.Process(pid)
+
+url = "https://beefirm.top/upload/"
+Completed = 0
 TASK_DICT = dateset.TASKS
 Break_type = False
 
@@ -53,7 +62,9 @@ def similarity(image1, image2, hash_size=8):
     return similarity
 
 
-def get_task(screen_np: np.ndarray) -> List[np.ndarray]:
+def get_task(
+    screen_np: np.ndarray,
+) -> List[np.ndarray]:
     first = Tools.clear_corp_in_image(
         screen_np,
         dateset.FIRST_TASK[0],
@@ -87,6 +98,7 @@ def get_task(screen_np: np.ndarray) -> List[np.ndarray]:
     pyautogui.dragTo(750, 650, duration=0.5, button="left")
     time.sleep(2)
     screen = pyautogui.screenshot()
+    screen.save("image2.png")
     newscreen_np = cv2.cvtColor(np.array(screen), cv2.COLOR_BGR2GRAY)
     fiveth = Tools.clear_corp_in_image(
         newscreen_np,
@@ -119,7 +131,9 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
     second_tp = [720, 830]
     thidr_tp = [1050, 830]
     fourth_tp = [1400, 830]
-    print(f"Index:{index_},Task:{task_type}")
+    fiveth_tp = [1170, 830]
+    sixth_tp = [1500, 830]
+    global Completed, Task_dict
 
     def get_tp() -> str:
         if index_ == 1:
@@ -131,16 +145,44 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
         elif index_ == 4:
             tp = fourth_tp
         elif index_ == 5:
-            pass
+            tp = fiveth_tp
+            pyautogui.moveTo(1350, 650)
+            time.sleep(0.2)
+            pyautogui.dragTo(750, 650, duration=0.5, button="left")
+            time.sleep(2)
+        elif index_ == 6:
+            tp = sixth_tp
+            pyautogui.moveTo(1350, 650)
+            time.sleep(0.2)
+            pyautogui.dragTo(750, 650, duration=0.5, button="left")
+            time.sleep(2)
         return tp[0], tp[1]
 
-    if task_type == "Breakthrough":
+    def retype() -> bool:
+        x1, y1, x2, y2 = dateset.RESTORES_ENERGY
+
+        screen = np.array(pyautogui.screenshot())
+        screen = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
+        screen = Tools.clear_corp_in_image(screen, x1, y1, x2, y2)
+        target = cv2.imread(
+            os.path.join(
+                os.getcwd(), "images", "task", "Task_ui", "Restores_energy.png"
+            )
+        )
+        target = cv2.cvtColor(target, cv2.COLOR_BGR2GRAY)
+        diff = pixel_diff_rate(target, screen)
+        if diff >= 0.95:
+            return True
+        else:
+            return False
+
+    if task_type == "Breakthrough" or task_type == "Relics":
         print(task_type)
         print("Is going")
         x, y = get_tp()
         pyautogui.moveTo(x, y)
         pyautogui.click()
-        time.sleep(0.8)
+        time.sleep(1)
         pyautogui.moveTo(1520, 430)
         pyautogui.click()
         x1, y1, x2, y2 = dateset.FIGHT
@@ -150,18 +192,19 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
 
             screen_np = Tools.clear_corp_in_image(screen_np, x1, y1, x2, y2)
             if task_tools.is_page(
-                cv2.cvtColor(screen_np, cv2.COLOR_BGR2GRAY), "Breakthrough"
+                cv2.cvtColor(screen_np, cv2.COLOR_BGR2GRAY), task_type
             ):
                 pyautogui.moveTo(1560, 980)
                 pyautogui.click()
-                time.sleep(1)
+                time.sleep(5)
                 if Support:
                     pyautogui.click(1700, 750)
-                    time.sleep(1)
+                    time.sleep(2)
                     pyautogui.click(140, 230)
-                    time.sleep(1)
+                    time.sleep(2)
                     pyautogui.click(1650, 1000)
-                    time.sleep(1)
+                    time.sleep(2)
+                    Task_dict = task_tools.deltask("Support", Task_dict)
                 pyautogui.moveTo(1560, 980)
                 pyautogui.click()
                 time.sleep(3)
@@ -173,6 +216,9 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
                 pyautogui.click()
                 break
             time.sleep(1)
+        Completed += 100
+        Task_dict = task_tools.deltask(task_type, Task_dict)
+
         return True, False
     elif task_type == "Week_tasks":
         print(task_type)
@@ -180,8 +226,9 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
         pyautogui.moveTo(get_tp())
         pyautogui.click()
         time.sleep(1)
-        pyautogui.moveTo(1500, 420)
+        pyautogui.moveTo(1525, 575)
         pyautogui.click()
+
         x1, y1, x2, y2 = dateset.FIGHT
         while True:
             screen = pyautogui.screenshot()
@@ -211,6 +258,9 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
                 break
 
             time.sleep(1)
+        Completed += 200
+        Task_dict = task_tools.deltask(task_type, Task_dict)
+
         return True, False
     elif task_type == "Decompose":
         print(task_type)
@@ -238,6 +288,9 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
         time.sleep(1)
         pyautogui.press("esc")
         time.sleep(3)
+        Completed += 100
+        Task_dict = task_tools.deltask(task_type, Task_dict)
+
         return True, False
     elif task_type == "Red" or task_type == "Gold":
         print(task_type)
@@ -245,7 +298,7 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
         pyautogui.moveTo(get_tp())
         pyautogui.click()
         time.sleep(2)
-        pyautogui.moveTo(1540, 420)
+        pyautogui.moveTo(1540, 440)
         pyautogui.click()
         time.sleep(1)
         while True:
@@ -275,8 +328,12 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
                 print("战斗结束")
                 pyautogui.moveTo(700, 940)
                 pyautogui.click()
+                time.sleep(3)
                 break
             time.sleep(1)
+        Completed += 100
+        Task_dict = task_tools.deltask(task_type, Task_dict)
+
         return True, False
     elif task_type == "Entrust":
         pyautogui.moveTo(get_tp())
@@ -299,6 +356,9 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
         pyautogui.click(1390, 900)
         time.sleep(3)
         pyautogui.press("esc")
+        Completed += 100
+        Task_dict = task_tools.deltask(task_type, Task_dict)
+
         return True, False
 
     elif task_type == "Use_consumables":
@@ -317,6 +377,11 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
         time.sleep(1)
         pyautogui.press("esc")
         time.sleep(2)
+        pyautogui.press("esc")
+        time.sleep(2)
+        Completed += 100
+        Task_dict = task_tools.deltask(task_type, Task_dict)
+
         return True, False
 
     elif task_type == "Photograph":
@@ -335,6 +400,9 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
         time.sleep(2)
         pyautogui.press("f4")
         time.sleep(2)
+        Completed += 1
+        Task_dict = task_tools.deltask(task_type, Task_dict)
+
         return True, True
     elif task_type == "Up_Relics":
         print(task_type)
@@ -370,24 +438,38 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
         pyautogui.click(1200, 670)
         time.sleep(1)
         pyautogui.click(1200, 670)
-        time.sleep(1)
+        time.sleep(2)
         pyautogui.press("esc")
         time.sleep(2)
         pyautogui.press("esc")
+        time.sleep(2)
+        Completed += 100
+        Task_dict = task_tools.deltask(task_type, Task_dict)
 
         return True, True
     # elif task_type == 'Destroy':
     #     print(task_type)
     #     pyautogui.moveTo(get_tp())
     #     pyautogui.click()
+
     elif task_type == "Secret_skills":
         pyautogui.press("esc")
         time.sleep(1)
         pyautogui.press("e")
         time.sleep(3)
+        if not retype():
+            pyautogui.click(980, 390)
+            time.sleep(2)
+            pyautogui.click(1150, 820)
+            time.sleep(2)
+            pyautogui.press("esc")
+            time.sleep(1)
         pyautogui.press("e")
         time.sleep(4)
         pyautogui.press("f4")
+        Completed += 100
+        Task_dict = task_tools.deltask(task_type, Task_dict)
+
         return True, False
     elif task_type == "Synthetic_consumables":
         print(task_type)
@@ -400,9 +482,12 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
         pyautogui.click(1145, 705)
         time.sleep(3)
         pyautogui.press("esc")
-
+        time.sleep(2)
         pyautogui.press("esc")
         time.sleep(2)
+        Completed += 100
+        Task_dict = task_tools.deltask(task_type, Task_dict)
+
         return True, True
     elif task_type == "Destroyer":
         print("破坏破坏物任务无法自动完成，请手动完成")
@@ -416,7 +501,7 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
         time.sleep(1)
         pyautogui.click(400, 500)
         time.sleep(1)
-        pyautogui.click(1500, 820)
+        pyautogui.click(1520, 860)
         time.sleep(1)
         while True:
             screen = pyautogui.screenshot()
@@ -446,7 +531,13 @@ def going(index_: int | str, task_type: str, Support: bool | None = None) -> boo
                 pyautogui.click()
                 break
             time.sleep(1)
+        Completed += 100
+        Task_dict = task_tools.deltask(task_type, Task_dict)
+
         return True, False
+    elif task_type == "Simulate_universe":
+        print("模拟宇宙任务无法自动完成，请手动完成")
+        return True, True
     return False, False
 
 
@@ -483,13 +574,17 @@ def get_Task_dict(
     Activity: int = None,
     restart_type: bool = False,
 ) -> None:
-    global Break_type, Task_dict
+    global Break_type, Task_dict, Completed, Activity_list
+    Task_dict = {}
+    Activity_list = []
     for index_, task in enumerate(tasks):
         for i in image_files:
             task_name = os.path.splitext(os.path.basename(i))[0]
             # 用于排除某些图像需要两个时情况
             if task_name[-1] == "_":
                 task_name = task_name[:-1]
+                if task_name[-1] == "_":
+                    task_name = task_name[:-1]
             task_images_path = os.path.join(task_images, i)
             screen_gray = cv2.cvtColor(cv2.imread(task_images_path), cv2.COLOR_BGR2GRAY)
             # cv2.imshow(f"Task {task_name}", screen_gray)
@@ -497,14 +592,15 @@ def get_Task_dict(
             # cv2.destroyAllWindows()
             diff = pixel_diff_rate(screen_gray, task)
 
-            if diff >= 0.987:
+            if diff >= 0.99:
                 activity = TASK_DICT[task_name]
                 Task_dict.update({task_name: index_ + 1})
                 print(f"相似度{diff}")
                 print(f"第{index_+1}个任务")
                 print(f"任务名称: {task_name}")
                 print(f"任务活跃度: {activity}")
-
+                if task_name != "Daily_tasks":
+                    Activity_list.append(activity)
                 # if len(Task_dict) == 6:
                 # Break_type = True
 
@@ -521,16 +617,14 @@ def get_Task_dict(
 
 
 def Main():
+    global Completed, Task_dict, Activity
     two_break_type = False
     screen = pyautogui.screenshot()
+    screen.save("image1.png")
     screen_np = np.array(screen)
     Activity = get_Activity(screen_np)
-    print(Activity)
-    # if Activity:
-    #     pass
-    # else:
-    #     pyautogui.press("f4")
-    #     time.sleep(3)
+    print(f"当前活跃度:{Activity}")
+    Completed += Activity
 
     screen_gray_ = cv2.cvtColor(screen_np, cv2.COLOR_BGR2GRAY)
     task_images = os.path.join(os.getcwd(), "images", "task")
@@ -550,86 +644,86 @@ def Main():
     if Activity != 500:
         get_Task_dict(tasks, image_files, task_images, Activity)
         print(Task_dict)
-        for key, value in Task_dict.items():
+        if Activity_list:
+            try:
+                sumber = Activity
+            except:
+                sumber = 0
+            for i in Activity_list:
+                sumber += i
+            if sumber >= 500:
+                pass
+            else:
+                try:
+                    data = {
+                        "text": f"Error type: Task acquisition is incomplete \n RSS usage:{process.memory_info()} \n",
+                    }
+                    files = {
+                        "img1": (
+                            "image1.png",
+                            open("image1.png", mode="rb").read(),
+                            "image/png",
+                        ),
+                        "img2": (
+                            "image2.png",
+                            open("image2.png", mode="rb").read(),
+                            "image/png",
+                        ),
+                    }
+                    resp = requests.post(url, data=data, files=files)
+                    print(f"请求情况 ：{resp} \n感谢您所上传的数据集，我们将保密有关您的Uid信息等，为扩展数据集所提供帮助")
+                except Exception as error:
+                    print(f"异常原因:{error}")
+                    sys.exit()
+                task_type = False
+
+        for key, value in list(Task_dict.items()):
             if "Support" in Task_dict:
                 Support = True
             else:
                 Support = False
+
             one, tow = going(value, key, Support)
-            print(tow)
+            print(f"当前已完成进度:{Completed}")
             if one:
-                time.sleep(10)
+                time.sleep(5)
                 if tow:
                     pass
                 else:
                     pyautogui.press("f4")
                     time.sleep(5)
-                    pyautogui.click(440, 830)
-                    time.sleep(3)
-
-                for i in range(6):
+            if Completed == 500:
+                for i in range(5):
                     if task_tools.can_get_activity():
-                        print("可以领取活跃度了")
                         pyautogui.click(440, 830)
                         time.sleep(3)
-                        screen = pyautogui.screenshot()
-                        screen_np = np.array(screen)
-                        if get_Activity(screen_np) == 500:
-                            pyautogui.click(1600, 320)
-                            two_break_type = True
-                            break
-                    else:
-                        print("不能领取奖励")
-                        screen = pyautogui.screenshot()
-                        screen_np = np.array(screen)
-                        Activity = get_Activity(screen_np)
-                        print(f"当前活跃度：{Activity}")
-                        if Activity != 500:
-                            Remaining_activity = 500 - Activity
-                            screen_gray_ = cv2.cvtColor(
-                                np.array(pyautogui.screenshot()), cv2.COLOR_BGR2GRAY
-                            )
-                            tasks = get_task(screen_gray_)
-                            get_Task_dict(tasks, image_files, task_images)
-                            break
-                        elif Activity == 500:
-                            pyautogui.click(1600, 320)
-                            two_break_type = True
-                            break
-                if two_break_type:
-                    break
-            else:
-                for i in range(6):
-                    if task_tools.can_get_activity():
-                        print("可以领取活跃度了")
-                        pyautogui.click(440, 830)
-                        time.sleep(3)
-                        Activity = get_Activity(screen_np)
-                        if Activity == 500:
-                            pyautogui.click(1600, 320)
-                            two_break_type = True
-                            break
-                if two_break_type:
-                    break
+                pyautogui.click(1600, 320)
+                print("今日委托已全部完成！")
 
     elif Activity == 500:
         pyautogui.click(1600, 320)
         print("今日委托已全部完成！")
 
-    # for key, value in Task_dict.items():
-    #     going(value, key)
-    # while True:
-    #     time.sleep(1)
 
-
-# thread = threading.Thread(target=ouput_show.run_mainloop)
 # thread.start()
 
 # thread2 = threading.Thread(target=ouput_show.keyboard_)
 # thread2.start()
 
 while True:
-    if Tools.is_game_window_focused():
-        Main()
-        break
+    try:
+        if Tools.is_game_window_focused():
+            Main()
+            break
+    except Exception as err:
+        print(f"发生错误：{err},请联系up获得帮助")
+        data = {
+            "text": f"Error type: Main Error \n RSS usage:{process.memory_info()} \n Error : {err}",
+        }
+        resp = requests.post(
+            url,
+            data=data,
+        )
+        print(f"请求情况 ：{resp} \n 感谢您所上传的数据集，我们将保密有关您的Uid信息等，为扩展数据集所提供帮助")
+        sys.exit()
     time.sleep(1)

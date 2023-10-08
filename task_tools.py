@@ -20,7 +20,7 @@ def is_page(screen_image, targetimg) -> bool:
         os.path.dirname(__file__), "images", "task", "Task_ui", f"{targetimg}.png"
     )
     locations = matchTemplate(screen_image, img_path, 0.6)
-    
+
     return locations
 
 
@@ -50,7 +50,7 @@ def can_get_activity() -> bool:
     targetpath = os.path.join(
         os.path.dirname(__file__), "images", "task", "Game_over", f"Get_activity.png"
     )
-    
+
     locations = matchTemplate(screen_np, targetpath, 0.69)
     return locations
 
@@ -80,4 +80,16 @@ def find_similar_center(image: np, threshold=0.8):
             center_points.append((center_x, center_y))
         if center_points:
             return center_points
-            break
+
+
+def deltask(completed_task: str, task_dict: dict) -> dict:
+    if completed_task in task_dict:
+        completed_task_index = task_dict[completed_task]
+
+        del task_dict[completed_task]
+
+        task_dict = {
+            task: index + 1 if index < completed_task_index else index
+            for task, index in task_dict.items()
+        }
+        return task_dict
